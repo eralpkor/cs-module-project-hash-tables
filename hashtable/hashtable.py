@@ -11,6 +11,7 @@ class HashTableEntry:
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
 
+# A hash table is a data structure that can be searched through in O(1) time.
 
 class HashTable:
     """
@@ -19,9 +20,15 @@ class HashTable:
 
     Implement this.
     """
-
     def __init__(self, capacity):
         # Your code here
+        self.capacity = capacity
+        self.storage = [None] * capacity
+
+        # Attributes for auto resize functionality
+        self.count = 0
+        self.resized = False
+        self.is_resizing = False
 
 
     def get_num_slots(self):
@@ -35,7 +42,8 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return len(self.storage)
+        
 
     def get_load_factor(self):
         """
@@ -63,6 +71,11 @@ class HashTable:
         Implement this, and/or FNV-1.
         """
         # Your code here
+        hash = 5381
+        for c in key:
+            # The ord() function returns an integer representing the Unicode character.
+            hash = (hash * 33) + ord(c)
+        return hash
 
 
     def hash_index(self, key):
@@ -82,6 +95,11 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
+        self.count += 1
+        if not self.storage[index]:
+            self.storage[index] = HashTableEntry(key, value)
+            self.resize()
 
 
     def delete(self, key):
@@ -114,6 +132,15 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        self.is_resizing = True
+        self.capacity = int(new_capacity * self.capacity)
+        prev_storage = self.storage
+        self.count = 0
+        for index in range(len(prev_storage)):
+            current_node = prev_storage[index]
+            while current_node:
+                self.put(current_node.key, current_node.value)
+                current_node = current_node.next
 
 
 
