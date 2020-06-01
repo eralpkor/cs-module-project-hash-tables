@@ -42,7 +42,8 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        return len(self.storage)
+        # return len(self.storage)
+        return self.capacity
         
 
     def get_load_factor(self):
@@ -96,10 +97,11 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
-        self.count += 1
         if not self.storage[index]:
             self.storage[index] = HashTableEntry(key, value)
-            self.resize()
+            self.count += 1
+        
+        else:
 
 
     def delete(self, key):
@@ -110,7 +112,10 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        index = self.hash_index(key)
+        value = self.storage[index].value
+        self.storage[index].value = None
+        return value
 
 
     def get(self, key):
@@ -121,7 +126,8 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        index = self.hash_index(key)
+        return self.storage[index].value
 
 
     def resize(self, new_capacity):
@@ -132,15 +138,18 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        self.is_resizing = True
-        self.capacity = int(new_capacity * self.capacity)
-        prev_storage = self.storage
-        self.count = 0
-        for index in range(len(prev_storage)):
-            current_node = prev_storage[index]
-            while current_node:
-                self.put(current_node.key, current_node.value)
-                current_node = current_node.next
+        # self.is_resizing = True
+        # self.capacity = int(new_capacity * self.capacity)
+        # prev_storage = self.storage
+        # self.count = 0
+        # for index in range(len(prev_storage)):
+        #     current_node = prev_storage[index]
+        #     while current_node:
+        #         self.put(current_node.key, current_node.value)
+        #         current_node = current_node.next
+
+        # self.is_resizing = False
+        # self.resized = True
 
 
 
