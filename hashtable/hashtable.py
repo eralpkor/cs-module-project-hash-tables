@@ -7,6 +7,8 @@ class HashTableEntry:
         self.value = value
         self.next = None
 
+    # def __str__(self):
+        
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
@@ -42,33 +44,31 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        # return len(self.storage)
         return self.capacity
         
-
+# over loaded load Factor > 0.7
+# underloaded Load Factor < 0.2
+# resize the hash table
     def get_load_factor(self):
         """
         Return the load factor for this hash table.
-
         Implement this.
         """
-        # Your code here
+        # nodes (count) / slots
+        return self.count / self.capacity
 
 
     def fnv1(self, key):
         """
         FNV-1 Hash, 64-bit
-
         Implement this, and/or DJB2.
         """
-
         # Your code here
 
 
     def djb2(self, key):
         """
         DJB2 hash, 32-bit
-
         Implement this, and/or FNV-1.
         """
         # Your code here
@@ -85,45 +85,55 @@ class HashTable:
         between within the storage capacity of the hash table.
         """
         #return self.fnv1(key) % self.capacity
+        # Get the index where to store key/value. 
         return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
         Store the value with the given key.
-
         Hash collisions should be handled with Linked List Chaining.
-
         Implement this.
         """
         # Your code here
         index = self.hash_index(key)
+        self.count += 1
         if not self.storage[index]:
             self.storage[index] = HashTableEntry(key, value)
-            self.count += 1
-        
+            self.auto_resize()
         else:
+            current_node = self.storage[index]
+            while current_node:
+                if current_node.key == key:
+                    current_node.value = value
+                    self.auto_resize()
+                    return
+
+                previous_node = current_node
+                current_node = current_node.next
+
+            previous_node.next = HashTableEntry(key, value)
+            self.auto_resize()
 
 
     def delete(self, key):
         """
         Remove the value stored with the given key.
-
         Print a warning if the key is not found.
-
         Implement this.
         """
         index = self.hash_index(key)
         value = self.storage[index].value
         self.storage[index].value = None
+
+        # if self.get_load_factor() < 0.2:
+        #     self.resize(min(self.capacity) // 2, MIN_CAPACITY)
         return value
 
 
     def get(self, key):
         """
         Retrieve the value stored with the given key.
-
         Returns None if the key is not found.
-
         Implement this.
         """
         index = self.hash_index(key)
@@ -134,24 +144,38 @@ class HashTable:
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
-
         Implement this.
         """
-        # Your code here
-        # self.is_resizing = True
-        # self.capacity = int(new_capacity * self.capacity)
-        # prev_storage = self.storage
-        # self.count = 0
-        # for index in range(len(prev_storage)):
-        #     current_node = prev_storage[index]
-        #     while current_node:
-        #         self.put(current_node.key, current_node.value)
-        #         current_node = current_node.next
+        self.is_resizing = True
+        self.capacity = new_capacity
+        prev_storage = self.storage
+        self.storage = [None] * self.capacity
+        self.count = 0
+        for index in range(len(prev_storage)):
+            current_node = prev_storage[index]
+            while current_node:
+                self.put(current_node.key, current_node.value)
+                current_node = current_node.next
 
-        # self.is_resizing = False
-        # self.resized = True
+            self.is_resizing = False
+            self.resized = True
+        
+    def resize_check(self):
+        load_factor = self.get_load_factor()
+        if self.resized:
+            if load_factor > 0.7:
+                self.resize(2)
+            elif load_factor < 0.2:
+                self.resize(0.5)
 
+    def auto_resize(self):
+        if not self.is_resizing:
+            self.resize_check()
 
+# Linked list search: O(n)
+# Linked list insert: O(1)
+# BST search: O(log n)
+# BST insert: O(log n)
 
 if __name__ == "__main__":
     ht = HashTable(8)
