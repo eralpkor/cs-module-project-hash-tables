@@ -1,4 +1,5 @@
 # Your code here
+results = dict()
 
 
 def expensive_seq(x, y, z):

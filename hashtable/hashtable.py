@@ -48,9 +48,7 @@ class HashTable:
         FNV-1 Hash, 64-bit
         Implement this, and/or DJB2.
         """
-
         # Your code here
-
 
     def djb2(self, key):
         """
@@ -122,7 +120,7 @@ class HashTable:
 
         # if nothing in the index
         if not current_node:
-            print('Nothing to see here...')
+            print('Warning! Nothing to see here...')
 
         # If value to delete is at the head of the list
         elif not current_node.next:
