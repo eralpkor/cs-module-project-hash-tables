@@ -8,21 +8,8 @@ class HashTableEntry:
         self.next = None
 
 
-    def __repr__(self):
-        contents = ""
-        current_node = self
-
-        while current_node.next:
-            contents += str(self.value) + " => "
-            current_node = current_node.next
-
-        contents += "None"
-
-        return contents
-
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
-
 
 class HashTable:
     """
@@ -36,10 +23,6 @@ class HashTable:
         self.count = 0
         self.storage = [None] * capacity
 
-    def __str__(self):
-        items = f"Table\n {self.count}/{self.capacity} items stored\n"
-        content = "\n".join([str(index) + ": " + str(linked_list) for index, linked_list in enumerate(self.storage)])
-        return items + content
 
     def get_num_slots(self):
         """
