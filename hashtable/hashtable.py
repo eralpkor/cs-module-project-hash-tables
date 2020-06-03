@@ -7,54 +7,56 @@ class HashTableEntry:
         self.value = value
         self.next = None
 
-    # def __str__(self):
-        
+
+    def __repr__(self):
+        contents = ""
+        current_node = self
+
+        while current_node.next:
+            contents += str(self.value) + " => "
+            current_node = current_node.next
+
+        contents += "None"
+
+        return contents
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
 
-# A hash table is a data structure that can be searched through in O(1) time.
 
 class HashTable:
     """
     A hash table that with `capacity` buckets
     that accepts string keys
-
     Implement this.
     """
+
     def __init__(self, capacity):
-        # Your code here
         self.capacity = capacity
+        self.count = 0
         self.storage = [None] * capacity
 
-        # Attributes for auto resize functionality
-        self.count = 0
-        self.resized = False
-        self.is_resizing = False
-
+    def __str__(self):
+        items = f"Table\n {self.count}/{self.capacity} items stored\n"
+        content = "\n".join([str(index) + ": " + str(linked_list) for index, linked_list in enumerate(self.storage)])
+        return items + content
 
     def get_num_slots(self):
         """
         Return the length of the list you're using to hold the hash
         table data. (Not the number of items stored in the hash table,
         but the number of slots in the main list.)
-
         One of the tests relies on this.
-
         Implement this.
         """
-        # Your code here
         return self.capacity
-        
-# over loaded load Factor > 0.7
-# underloaded Load Factor < 0.2
-# resize the hash table
+
+
     def get_load_factor(self):
         """
         Return the load factor for this hash table.
         Implement this.
         """
-        # nodes (count) / slots
         return self.count / self.capacity
 
 
@@ -63,6 +65,7 @@ class HashTable:
         FNV-1 Hash, 64-bit
         Implement this, and/or DJB2.
         """
+
         # Your code here
 
 
@@ -73,6 +76,7 @@ class HashTable:
         """
         # Your code here
         hash = 5381
+        # Loop the key so we can hash every char
         for c in key:
             # The ord() function returns an integer representing the Unicode character.
             hash = (hash * 33) + ord(c)
@@ -85,7 +89,6 @@ class HashTable:
         between within the storage capacity of the hash table.
         """
         #return self.fnv1(key) % self.capacity
-        # Get the index where to store key/value. 
         return self.djb2(key) % self.capacity
 
     def put(self, key, value):
@@ -94,25 +97,35 @@ class HashTable:
         Hash collisions should be handled with Linked List Chaining.
         Implement this.
         """
-        # Your code here
+        # Create a hash index
         index = self.hash_index(key)
-        self.count += 1
+
+        # Insert into an empty slot
         if not self.storage[index]:
             self.storage[index] = HashTableEntry(key, value)
-            self.auto_resize()
+            # Add to the items stored (count)
+            self.count += 1
+
+        # If linked list exists at current location
         else:
             current_node = self.storage[index]
-            while current_node:
-                if current_node.key == key:
-                    current_node.value = value
-                    self.auto_resize()
-                    return
 
-                previous_node = current_node
+            while current_node.key != key and current_node.next:
                 current_node = current_node.next
 
-            previous_node.next = HashTableEntry(key, value)
-            self.auto_resize()
+            # If key found, update current value
+            if current_node.key == key:
+                current_node.value = value
+
+            # Cannot find the key, end of list. Create a new entry.
+            else:
+                current_node.next = HashTableEntry(key, value)
+                self.count += 1
+
+        # Resize hash table if load factor too large
+        if self.get_load_factor() > 0.7:
+            # over loaded load Factor > 0.7
+            self.resize(self.capacity * 2)
 
 
     def delete(self, key):
@@ -122,12 +135,39 @@ class HashTable:
         Implement this.
         """
         index = self.hash_index(key)
-        value = self.storage[index].value
-        self.storage[index].value = None
+        current_node = self.storage[index]
 
-        # if self.get_load_factor() < 0.2:
-        #     self.resize(min(self.capacity) // 2, MIN_CAPACITY)
-        return value
+        # if nothing in the index
+        if not current_node:
+            print('Nothing to see here...')
+
+        # If value to delete is at the head of the list
+        elif not current_node.next:
+            self.storage[index] = None
+            self.count -= 1
+
+        else:
+            # store a pointer to previous node
+            previous_node = None
+
+            # Move to the next node if key won't match and there is next node
+            while current_node.key != key and current_node.next:
+                previous_node = current_node
+                current_node = current_node.next
+
+            # Value to delete is in the middle, reassign around this node
+            if not current_node.next:
+                previous_node.next = None
+                self.items_stored -= 1
+            else:
+                previous_node.next = current_node.next
+                self.count -= 1
+
+        # Resize hash table if load factor is too small
+        if self.get_load_factor() < 0.2:
+            # underloaded Load Factor < 0.2
+            self.resize(min(self.capacity // 2, MIN_CAPACITY))
+
 
 
     def get(self, key):
@@ -137,45 +177,50 @@ class HashTable:
         Implement this.
         """
         index = self.hash_index(key)
-        return self.storage[index].value
 
+        if self.storage[index]:
+            current_node = self.storage[index]
 
+            # If key does not match move to the next node if there is any
+            while current_node.key != key and current_node.next:
+                current_node = current_node.next
+                
+            # Cannot find the key
+            if not current_node.next:
+                return current_node.value
+
+            # Otherwise: found the correct node
+            else:
+                return current_node.value
+
+        # No LL here, return none
+        else:
+            return None
+
+  
     def resize(self, new_capacity):
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
         Implement this.
         """
-        self.is_resizing = True
+        # Store existing array values
+        existing_storage = self.storage
+
+        # Start a new hash table and update
         self.capacity = new_capacity
-        prev_storage = self.storage
-        self.storage = [None] * self.capacity
-        self.count = 0
-        for index in range(len(prev_storage)):
-            current_node = prev_storage[index]
-            while current_node:
-                self.put(current_node.key, current_node.value)
-                current_node = current_node.next
+        self.storage = [None] * new_capacity
 
-            self.is_resizing = False
-            self.resized = True
-        
-    def resize_check(self):
-        load_factor = self.get_load_factor()
-        if self.resized:
-            if load_factor > 0.7:
-                self.resize(2)
-            elif load_factor < 0.2:
-                self.resize(0.5)
+        # Add to the new table
+        for item in existing_storage:
+            # If item is a LL, add all nodes to new storage
+            if item:
+                current_node = item
+                while current_node:
+                    # put current key/value into new storage
+                    self.put(current_node.key, current_node.value)
+                    current_node = current_node.next
 
-    def auto_resize(self):
-        if not self.is_resizing:
-            self.resize_check()
-
-# Linked list search: O(n)
-# Linked list insert: O(1)
-# BST search: O(log n)
-# BST insert: O(log n)
 
 if __name__ == "__main__":
     ht = HashTable(8)
