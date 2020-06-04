@@ -1,10 +1,19 @@
 # Your code here
-results = dict()
+cache = {}
 
 
 def expensive_seq(x, y, z):
-    # Your code here
+    if x <= 0:
+        if (x, y, z) in cache:
+            return cache[(x, y, z)]
+        cache[(x, y, z)] = y + z
+        return cache[(x, y, z)]
 
+    if x >  0: 
+        if (x, y, z) in cache:
+            return cache[(x, y, z)]
+        cache[(x, y, z)] = expensive_seq(x-1,y+1,z) + expensive_seq(x-2,y+2,z*2) + expensive_seq(x-3,y+3,z*3)
+        return cache[(x, y, z)]
 
 
 if __name__ == "__main__":
